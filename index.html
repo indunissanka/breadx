@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Order Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #007BFF;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        h1, h2 {
+            color: #007BFF;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            color: #333;
+        }
+        input[type="text"], input[type="tel"], input[type="email"], input[type="date"], select {
+            width: calc(100% - 24px);
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .product-image {
+            width: 100%;
+            height: auto;
+            margin-top: 10px;
+            border-radius: 10px;
+        }
+        .price, .subtotal {
+            font-weight: bold;
+            color: #007BFF;
+        }
+        .error-message {
+            color: red;
+            margin-top: 5px;
+        }
+    </style>
+    <script>
+        function updateSubtotal() {
+            const product1Quantity = document.getElementById('product1_quantity').value;
+            const product2Quantity = document.getElementById('product2_quantity').value;
+            const product3Quantity = document.getElementById('product3_quantity').value;
+
+            const product1Price = 10; // Price of Product 1
+            const product2Price = 15; // Price of Product 2
+            const product3Price = 20; // Price of Product 3
+
+            const subtotal1 = product1Quantity * product1Price;
+            const subtotal2 = product2Quantity * product2Price;
+            const subtotal3 = product3Quantity * product3Price;
+
+            document.getElementById('subtotal1').textContent = subtotal1 > 0 ? `$${subtotal1}` : '';
+            document.getElementById('subtotal2').textContent = subtotal2 > 0 ? `$${subtotal2}` : '';
+            document.getElementById('subtotal3').textContent = subtotal3 > 0 ? `$${subtotal3}` : '';
+
+            const grandTotal = subtotal1 + subtotal2 + subtotal3;
+            document.getElementById('grand_total').textContent = `Grand Total: $${grandTotal}`;
+        }
+
+        function validateDate() {
+            const dateInput = document.getElementById('delivery_date');
+            const date = new Date(dateInput.value);
+            const day = date.getDay();
+            const errorMessage = document.getElementById('date_error');
+
+            if (day !== 6 && day !== 0) {
+                errorMessage.textContent = 'Please choose a delivery date that is a Saturday or Sunday.';
+                dateInput.value = '';
+            } else {
+                errorMessage.textContent = '';
+            }
+        }
+
+        function submitForm(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            // Fetch current SKU counts and check the limits
+            fetch('YOUR_SCRIPT_URL_FOR_SKU_CHECK')
+                .then(response => response.json())
+                .then(data => {
+                    const product1Quantity = parseInt(formData.get('product1_quantity'), 10);
+                    const product2Quantity = parseInt(formData.get('product2_quantity'), 10);
+                    const product3Quantity = parseInt(formData.get('product3_quantity'), 10);
+
+                    if (data.product1 + product1Quantity > 10 ||
+                        data.product2 + product2Quantity > 10 ||
+                        data.product3 + product3Quantity > 10) {
+                        alert('SKU limit exceeded for one or more products.');
+                    } else {
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: formData
+                        }).then(response => {
+                            if (response.ok) {
+                                window.location.href = 'thankyou.html';
+                            } else {
+                                alert('There was an error submitting the form.');
+                            }
+                        });
+                    }
+                });
+        }
+    </script>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Product Order Form</h1>
+        <form action="YOUR_WEB_APP_URL" method="post" onsubmit="submitForm(event)">
+            <!-- User Information -->
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" name="phone" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <!-- Delivery Date -->
+            <label for="delivery_date">Delivery Date:</label>
+            <input type="date" id="delivery_date" name="delivery_date" onchange="validateDate()" required>
+            <div id="date_error" class="error-message"></div>
+
+            <!-- Product 1 -->
+            <h2>Product 1</h2>
+            <img src="product1_image_url" alt="Product 1 Image" class="product-image">
+            <span class="price">$10 each</span>
+            <label for="product1_quantity">Quantity:</label>
+            <select id="product1_quantity" name="product1_quantity" onchange="updateSubtotal()">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <span class="subtotal" id="subtotal1"></span>
+            <input type="hidden" name="product1_sku" value="SKU1">
+
+            <!-- Product 2 -->
+            <h2>Product 2</h2>
+            <img src="product2_image_url" alt="Product 2 Image" class="product-image">
+            <span class="price">$15 each</span>
+            <label for="product2_quantity">Quantity:</label>
+            <select id="product2_quantity" name="product2_quantity" onchange="updateSubtotal()">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <span class="subtotal" id="subtotal2"></span>
+            <input type="hidden" name="product2_sku" value="SKU2">
+
+            <!-- Product 3 -->
+            <h2>Product 3</h2>
+            <img src="product3_image_url" alt="Product 3 Image" class="product-image">
+            <span class="price">$20 each</span>
+            <label for="product3_quantity">Quantity:</label>
+            <select id="product3_quantity" name="product3_quantity" onchange="updateSubtotal()">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <span class="subtotal" id="subtotal3"></span>
+            <input type="hidden" name="product3_sku" value="SKU3">
+
+            <!-- Grand Total -->
+            <h2 id="grand_total">Grand Total: $0</h2>
+
+            <!-- Submit Button -->
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
